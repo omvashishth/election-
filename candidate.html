@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Candidate</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom right, #333, #000);
+            color: #e0e0e0;
+        }
+        .candidate-container {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            width: 300px;
+            text-align: center;
+        }
+        h2 {
+            color: #bb86fc;
+            margin-bottom: 20px;
+        }
+        .candidate-btn {
+            padding: 10px 20px;
+            background-color: #bb86fc;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        .candidate-btn:hover {
+            background-color: #3700b3;
+        }
+        .confirm-btn {
+            padding: 10px 20px;
+            background-color: #6200EE;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        .confirm-btn:hover {
+            background-color: #3700b3;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: #bb86fc;
+            width: 80%;
+            max-width: 400px;
+        }
+        .modal-content button {
+            background-color: #bb86fc;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .modal-content button:hover {
+            background-color: #3700b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="candidate-container">
+        <h2>Choose Candidate</h2>
+        <div>
+            <button class="candidate-btn" onclick="selectCandidate('Candidate 1')">Candidate 1</button>
+            <button class="candidate-btn" onclick="selectCandidate('Candidate 2')">Candidate 2</button>
+            <button class="candidate-btn" onclick="selectCandidate('Candidate 3')">Candidate 3</button>
+            <button class="candidate-btn" onclick="selectCandidate('Candidate 4')">Candidate 4</button>
+            <button class="candidate-btn" onclick="selectCandidate('Candidate 5')">Candidate 5</button>
+        </div>
+        <br>
+        <button class="confirm-btn" onclick="confirmSelection()">Confirm</button>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <p id="modal-message"></p>
+            <button onclick="closeModal()">OK</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedCandidate = '';
+        const voterName = new URLSearchParams(window.location.search).get('name');
+
+        function showModal(message) {
+            const modal = document.getElementById('modal');
+            const modalMessage = document.getElementById('modal-message');
+            modalMessage.textContent = message;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function selectCandidate(candidate) {
+            selectedCandidate = candidate;
+            showModal(candidate + ' selected. Please confirm your choice.');
+        }
+
+        async function confirmSelection() {
+            if (selectedCandidate) {
+                try {
+                    const response = await fetch('http://localhost:3000/vote', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ candidate: selectedCandidate, voterName: voterName })
+                    });
+
+                    if (response.ok) {
+                        showModal('You have successfully voted for ' + selectedCandidate + '. Redirecting to results...');
+                        setTimeout(() => {
+                            window.location.href = 'results.html';
+                        }, 2000);
+                    } else {
+                        const errorText = await response.text();
+                        showModal(`Error: ${errorText}`);
+                    }
+                } catch (error) {
+                    showModal(`Error: ${error.message}`);
+                    console.error('Error:', error);
+                }
+            } else {
+                showModal('Please select a candidate before confirming.');
+            }
+        }
+    </script>
+</body>
+</html>
